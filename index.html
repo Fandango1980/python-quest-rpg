@@ -1,1 +1,732 @@
-<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Python Quest</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#333;min-height:100vh;padding:20px}.container{max-width:1400px;margin:0 auto}header{text-align:center;color:#fff;margin-bottom:30px}h1{font-size:3em;text-shadow:2px 2px 4px rgba(0,0,0,.3)}.grid{display:grid;grid-template-columns:280px 1fr 280px;gap:20px}.panel{background:#fff;border-radius:15px;padding:20px;box-shadow:0 8px 16px rgba(0,0,0,.2);margin-bottom:20px}h2{color:#667eea;margin-bottom:15px;border-bottom:2px solid #f0f0f0;padding-bottom:10px}.stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0}.bar{width:100%;height:20px;background:#f0f0f0;border-radius:10px;overflow:hidden;margin-top:10px}.fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);width:0;transition:width .5s}textarea{width:100%;min-height:150px;padding:15px;border:2px solid #e0e0e0;border-radius:8px;font-family:'Courier New',monospace;font-size:14px;background:#f8f9fa;resize:vertical}.btn{padding:12px 24px;border:none;border-radius:8px;font-size:1em;cursor:pointer;font-weight:bold;margin:5px;transition:all .3s}.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(102,126,234,.4)}#output{background:#1e1e1e;color:#0f0;padding:15px;border-radius:8px;font-family:'Courier New',monospace;min-height:100px;white-space:pre-wrap;margin-top:15px}.lesson{padding:12px;border-radius:8px;margin:8px 0;cursor:pointer;background:#f8f9fa;transition:all .3s}.lesson:hover:not(.locked){background:#e9ecef;transform:translateX(5px)}.lesson.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:bold}.lesson.locked{opacity:.5;cursor:not-allowed}.badge{display:inline-block;background:#667eea;color:#fff;padding:8px 15px;border-radius:20px;margin:5px;font-family:'Courier New',monospace;font-size:.9em}.success{color:#28a745;font-weight:bold}.error{color:#dc3545;font-weight:bold}.challenge{background:#fff3cd;padding:15px;border-radius:8px;border-left:4px solid #ffc107;font-weight:bold;color:#856404;margin-bottom:15px}@media(max-width:1200px){.grid{grid-template-columns:1fr}}</style></head><body><div class="container"><header><h1>🐍 Python Quest</h1><p>Leer Python door een epische RPG te spelen!</p></header><div class="grid"><div><div class="panel"><h2>🧙 Jouw Held</h2><div class="stat"><span>Level:</span><span id="level">1</span></div><div class="stat"><span>HP:</span><span id="hp">100/100</span></div><div class="stat"><span>XP:</span><span id="xp">0/100</span></div><div class="bar"><div id="xp-bar" class="fill"></div></div></div><div class="panel"><h2>👾 Vijand</h2><div class="stat"><span>Naam:</span><span id="enemy-name">Syntax Bug</span></div><div class="stat"><span>HP:</span><span id="enemy-hp">30/30</span></div></div><div class="panel"><h2>🎯 Skills</h2><div id="skills"><span class="badge">print()</span></div></div></div><div><div class="panel"><h2>📖 Verhaal</h2><p id="story">Welkom bij Python Quest! Je bent een beginnende programmeur in Pythonia. Versla vijanden door Python code te schrijven!</p></div><div class="panel"><h2>⚔️ Uitdaging</h2><div class="challenge" id="challenge">Schrijf code om "Hallo Pythonia!" te printen</div><h2>💻 Code:</h2><textarea id="code" placeholder="# Schrijf hier je Python code..."></textarea><div><button class="btn btn-primary" onclick="run()">▶️ Uitvoeren</button><button class="btn" onclick="hint()">💡 Hint</button></div><div id="output"></div></div></div><div><div class="panel"><h2>📚 Lessen</h2><div id="lessons"><div class="lesson active" onclick="load(1)">1️⃣ Print</div><div class="lesson locked">2️⃣ Variabelen 🔒</div><div class="lesson locked">3️⃣ If 🔒</div><div class="lesson locked">4️⃣ Loops 🔒</div><div class="lesson locked">5️⃣ Functies 🔒</div><div class="lesson locked">6️⃣ Lists 🔒</div></div></div></div></div></div><script>let g={p:{l:1,hp:100,mhp:100,xp:0,nxp:100,s:['print()']},cl:1,e:{n:'Syntax Bug',hp:30,mhp:30}};const L={1:{t:'Print',st:'Gebruik print() om de poort te openen!',ch:'Schrijf code om "Hallo Pythonia!" te printen',h:'print("Hallo Pythonia!")',c:'print',en:'Syntax Bug',ehp:30,xp:50,sk:'print()'},2:{t:'Variabelen',st:'Leer over variabelen!',ch:'Maak variabele "naam" en print deze',h:'naam = "Test"\\nprint(naam)',c:'=',en:'Memory Leak',ehp:50,xp:75,sk:'variabelen'},3:{t:'If',st:'Maak beslissingen!',ch:'If statement: 15 > 10',h:'if 15 > 10:\\n    print("Ja!")',c:'if',en:'Logic Error',ehp:70,xp:100,sk:'if/else'},4:{t:'Loops',st:'Herhaal code!',ch:'For loop: print 1-5',h:'for i in range(1,6):\\n    print(i)',c:'for',en:'Infinite Loop',ehp:90,xp:125,sk:'for/while'},5:{t:'Functies',st:'Herbruikbare code!',ch:'Functie "begroet"',h:'def begroet(n):\\n    print(n)',c:'def',en:'Recursion Dragon',ehp:120,xp:150,sk:'functies'},6:{t:'Lists',st:'Verzamelingen!',ch:'List met 3 kleuren',h:'k=["rood","blauw"]\\nprint(k[0])',c:'[',en:'Index Error',ehp:150,xp:200,sk:'lists'}};function load(n){const l=L[n];if(!l)return;g.cl=n;g.e={n:l.en,hp:l.ehp,mhp:l.ehp};document.getElementById('story').textContent=l.st;document.getElementById('challenge').textContent=l.ch;document.getElementById('enemy-name').textContent=l.en;document.getElementById('output').innerHTML='';document.querySelectorAll('.lesson').forEach((i,x)=>{i.classList.remove('active');if(x===n-1)i.classList.add('active')});upd()}function run(){const c=document.getElementById('code').value;const l=L[g.cl];const o=document.getElementById('output');if(!c.trim()){o.innerHTML='<span class="error">✗ Schrijf code!</span>';return}if(c.includes(l.c)){o.innerHTML='<span class="success">✓ Succes!</span>\\n';const p=c.match(/print\\(['"](.*?)['"]\)/g);if(p)p.forEach(m=>{const t=m.match(/['"](.*?)['"]/)[1];o.innerHTML+=t+'\\n'});const d=30;g.e.hp-=d;o.innerHTML+=`\\n⚔️ ${d} schade!\\n`;if(g.e.hp<=0){o.innerHTML+=`\\n🎉 ${g.e.n} verslagen!\\n`;xp(l.xp);if(!g.p.s.includes(l.sk)){g.p.s.push(l.sk);us()}unl()}}else{o.innerHTML='<span class="error">✗ Fout!</span>'}upd()}function hint(){const l=L[g.cl];document.getElementById('output').innerHTML=`💡 Hint:\\n${l.h}`}function xp(x){g.p.xp+=x;while(g.p.xp>=g.p.nxp){g.p.l++;g.p.xp-=g.p.nxp;g.p.nxp=Math.floor(g.p.nxp*1.5);g.p.mhp+=20;g.p.hp=g.p.mhp;document.getElementById('output').innerHTML+=`\\n🎊 LEVEL ${g.p.l}!`}}function unl(){const nx=g.cl+1;if(L[nx]){const i=document.querySelectorAll('.lesson');i[nx-1].classList.remove('locked');i[nx-1].onclick=()=>load(nx)}}function us(){const s=document.getElementById('skills');s.innerHTML='';g.p.s.forEach(sk=>{const b=document.createElement('span');b.className='badge';b.textContent=sk;s.appendChild(b)})}function upd(){document.getElementById('level').textContent=g.p.l;document.getElementById('hp').textContent=`${g.p.hp}/${g.p.mhp}`;document.getElementById('xp').textContent=`${g.p.xp}/${g.p.nxp}`;document.getElementById('xp-bar').style.width=`${(g.p.xp/g.p.nxp)*100}%`;document.getElementById('enemy-hp').textContent=`${Math.max(0,g.e.hp)}/${g.e.mhp}`}load(1)</script></body></html>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Quest - Word de Held van Pythonia</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Intro Screen */
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 1s ease-in;
+        }
+        
+        .intro-content {
+            max-width: 800px;
+            padding: 40px;
+            text-align: center;
+            animation: slideUp 1s ease-out;
+        }
+        
+        .intro-content h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        .intro-story {
+            font-size: 1.3em;
+            line-height: 1.8;
+            margin: 30px 0;
+            text-align: left;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid rgba(255,215,0,0.3);
+        }
+        
+        .intro-story p {
+            margin-bottom: 20px;
+        }
+        
+        .start-btn {
+            padding: 20px 50px;
+            font-size: 1.5em;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(245,87,108,0.4);
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(245,87,108,0.6);
+        }
+        
+        /* Tutorial Overlay */
+        #tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        
+        .tutorial-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        
+        .tutorial-box h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .tutorial-box p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .tutorial-code {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .next-btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            background: #fff;
+            color: #667eea;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .next-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255,255,255,0.3);
+        }
+        
+        /* Game Container */
+        .game-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            display: none;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
+        
+        header h1 {
+            font-size: 3em;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            color: #ffd700;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,215,0,0.3);
+            padding-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.1em;
+        }
+        
+        .stat-item:last-child { border-bottom: none; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+            border: 2px solid rgba(255,215,0,0.3);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f093fb, #f5576c);
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(245,87,108,0.5);
+        }
+        
+        .skill-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .story-text {
+            line-height: 1.8;
+            font-size: 1.1em;
+            color: #e0e0e0;
+        }
+        
+        .challenge-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 5px 15px rgba(245,87,108,0.3);
+        }
+        
+        #code-input {
+            width: 100%;
+            min-height: 180px;
+            padding: 20px;
+            border: 2px solid rgba(255,215,0,0.3);
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            background: rgba(0,0,0,0.5);
+            color: #0f0;
+            resize: vertical;
+        }
+        
+        #code-input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.3);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            flex: 1;
+            box-shadow: 0 5px 15px rgba(245,87,108,0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245,87,108,0.5);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        #output {
+            background: rgba(0,0,0,0.7);
+            color: #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            min-height: 120px;
+            white-space: pre-wrap;
+            margin-top: 15px;
+            border: 2px solid rgba(0,255,0,0.3);
+            font-size: 1.05em;
+        }
+        
+        .lesson-item {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid transparent;
+        }
+        
+        .lesson-item:hover:not(.locked) {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+            border-color: rgba(255,215,0,0.5);
+        }
+        
+        .lesson-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-weight: bold;
+            border-color: #ffd700;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+        
+        .lesson-item.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .success { color: #00ff00; font-weight: bold; text-shadow: 0 0 10px #00ff00; }
+        .error { color: #ff4444; font-weight: bold; text-shadow: 0 0 10px #ff4444; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+            50% { text-shadow: 0 0 40px rgba(255,215,0,0.8), 0 0 60px rgba(255,215,0,0.6); }
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Intro Screen -->
+    <div id="intro-screen">
+        <div class="intro-content">
+            <h1>🐍 Python Quest</h1>
+            <div class="intro-story">
+                <p><strong>📖 Het Verhaal van Pythonia</strong></p>
+                <p>In het mystieke land van <strong>Pythonia</strong> leefden de mensen eeuwenlang in vrede. Maar op een dag verschenen er vreemde monsters uit het Digitale Bos - bugs, errors en crashes die het land bedreigden.</p>
+                <p>Jij bent <strong>de Uitverkorene</strong>, een jonge held die de oude kunst van <strong>Code Magie</strong> moet leren om je dorp te beschermen.</p>
+                <p>De wijze tovenaar <strong>Pythonicus</strong> zal je stap voor stap leren hoe je de krachtige Python spreukformules moet gebruiken om de monsters te verslaan.</p>
+                <p><strong>⚔️ Jouw missie:</strong> Leer de kunst van programmeren en word de grootste Code Krijger van Pythonia!</p>
+            </div>
+            <button class="start-btn" onclick="startGame()">🎮 Begin je Avontuur!</button>
+        </div>
+    </div>
+
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-overlay">
+        <div class="tutorial-box">
+            <h2 id="tutorial-title">🎓 Les 1: De Print Spreuk</h2>
+            <p id="tutorial-text">Welkom, jonge held! Ik ben Pythonicus, je mentor. De eerste spreuk die je moet leren is de <strong>print()</strong> spreuk. Hiermee kun je berichten tonen en de monsters verzwakken!</p>
+            <div class="tutorial-code" id="tutorial-code">print("Hallo Wereld!")</div>
+            <p id="tutorial-instruction">👆 Dit is hoe je de print spreuk gebruikt. Typ tekst tussen aanhalingstekens binnen de haakjes.</p>
+            <button class="next-btn" onclick="nextTutorial()">Volgende →</button>
+        </div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container">
+        <header>
+            <h1>🐍 Python Quest</h1>
+            <p class="subtitle">⚔️ Bescherm Pythonia met de Kracht van Code!</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div>
+                <div class="panel">
+                    <h2>🧙‍♂️ Jouw Held</h2>
+                    <div class="stat-item"><span>👤 Naam:</span><span>Code Krijger</span></div>
+                    <div class="stat-item"><span>⭐ Level:</span><span id="level">1</span></div>
+                    <div class="stat-item"><span>❤️ HP:</span><span id="hp">100/100</span></div>
+                    <div class="stat-item"><span>✨ XP:</span><span id="xp">0/100</span></div>
+                    <div class="progress-bar"><div id="xp-bar" class="progress-fill"></div></div>
+                </div>
+                
+                <div class="panel">
+                    <h2>👾 Vijand</h2>
+                    <div class="stat-item"><span>Naam:</span><span id="enemy-name">-</span></div>
+                    <div class="stat-item"><span>💀 HP:</span><span id="enemy-hp">-</span></div>
+                </div>
+                
+                <div class="panel">
+                    <h2>🎯 Geleerde Spreuken</h2>
+                    <div id="skills"></div>
+                </div>
+            </div>
+
+            <!-- Center Panel -->
+            <div>
+                <div class="panel">
+                    <h2>📖 Het Verhaal</h2>
+                    <div class="story-text" id="story"></div>
+                </div>
+                
+                <div class="panel">
+                    <h2>⚔️ Jouw Uitdaging</h2>
+                    <div class="challenge-box" id="challenge"></div>
+                    
+                    <h2>💻 Schrijf je Code Spreuk:</h2>
+                    <textarea id="code-input" placeholder="# Typ hier je Python code...
+# Bijvoorbeeld: print('Hallo Pythonia!')"></textarea>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="runCode()">▶️ Voer Spreuk Uit!</button>
+                        <button class="btn btn-secondary" onclick="showHint()">💡 Vraag Hulp</button>
+                    </div>
+                    <div id="output"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div>
+                <div class="panel">
+                    <h2>📚 Jouw Lessen</h2>
+                    <div id="lessons"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let game = {
+            player: { level: 1, hp: 100, maxHp: 100, xp: 0, xpNext: 100, skills: [] },
+            currentLesson: 1,
+            enemy: null,
+            tutorialStep: 0
+        };
+
+        const lessons = {
+            1: {
+                title: '🎯 Les 1: De Print Spreuk',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Welkom, jonge held! Voor je staat de <strong>Syntax Bug</strong>, een van de zwakste monsters. Perfect om mee te oefenen!<br><br>De <strong>print()</strong> spreuk is de basis van alle code magie. Hiermee kun je berichten tonen en monsters aanvallen!<br><br>📝 <strong>Hoe werkt het?</strong><br>• Typ: <code>print()</code><br>• Zet je bericht tussen aanhalingstekens: <code>"je tekst"</code><br>• Plaats het tussen de haakjes: <code>print("je tekst")</code><br><br>Probeer het nu!"',
+                challenge: '📜 Gebruik de print() spreuk om "Hallo Pythonia!" te roepen en de Syntax Bug aan te vallen!',
+                hint: '💡 Tip van Pythonicus:\n\nprint("Hallo Pythonia!")\n\n👆 Kopieer dit exact en voer het uit!',
+                check: (code) => code.includes('print') && (code.includes('"Hallo Pythonia!"') || code.includes("'Hallo Pythonia!'")),
+                enemy: { name: 'Syntax Bug 🐛', hp: 30, maxHp: 30 },
+                xp: 50,
+                skill: 'print()'
+            },
+            2: {
+                title: '📦 Les 2: Variabelen - Magische Dozen',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Uitstekend werk! Nu verschijnt de <strong>Memory Leak</strong>! Om deze te verslaan moet je leren over <strong>variabelen</strong>.<br><br>Variabelen zijn als magische dozen waar je informatie in kunt bewaren.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Kies een naam voor je doos: <code>naam</code><br>• Gebruik het = teken: <code>naam =</code><br>• Geef het een waarde: <code>naam = "Held"</code><br>• Print de variabele: <code>print(naam)</code><br><br>Probeer het!"',
+                challenge: '📜 Maak een variabele "naam" met jouw naam erin, en print deze om de Memory Leak te verslaan!',
+                hint: '💡 Tip van Pythonicus:\n\nnaam = "Jouw Naam"\nprint(naam)\n\n👆 Vervang "Jouw Naam" met je eigen naam!',
+                check: (code) => code.includes('naam') && code.includes('=') && code.includes('print'),
+                enemy: { name: 'Memory Leak 💾', hp: 50, maxHp: 50 },
+                xp: 75,
+                skill: 'variabelen'
+            },
+            3: {
+                title: '🔀 Les 3: If Statements - Beslissingen',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"De <strong>Logic Error</strong> daagt je uit! Deze vijand kan alleen verslagen worden met slimme beslissingen.<br><br>Met <strong>if statements</strong> kan je code verschillende dingen doen op basis van voorwaarden.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>if</code><br>• Schrijf een voorwaarde: <code>if 10 > 5:</code><br>• Let op de dubbele punt!<br>• Spring in (4 spaties) en schrijf wat er moet gebeuren<br><br>Voorbeeld:<br><code>if 10 > 5:<br>    print("Waar!")</code>"',
+                challenge: '📜 Schrijf een if statement die checkt of 15 groter is dan 10, en print "Aanval!" als dat waar is!',
+                hint: '💡 Tip van Pythonicus:\n\nif 15 > 10:\n    print("Aanval!")\n\n👆 Let op de 4 spaties voor print!',
+                check: (code) => code.includes('if') && code.includes('>') && code.includes('print'),
+                enemy: { name: 'Logic Error ⚠️', hp: 70, maxHp: 70 },
+                xp: 100,
+                skill: 'if/else'
+            },
+            4: {
+                title: '🔁 Les 4: Loops - Herhaling is Kracht',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Het <strong>Infinite Loop Monster</strong> is verschenen! Ironisch genoeg versla je hem met... loops!<br><br><strong>For loops</strong> laten je code meerdere keren herhalen zonder alles opnieuw te typen.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>for</code><br>• Kies een variabele naam: <code>for i</code><br>• Gebruik <code>in range()</code>: <code>for i in range(5):</code><br>• Spring in en schrijf wat herhaald moet worden<br><br>Voorbeeld:<br><code>for i in range(3):<br>    print(i)</code><br>Dit print: 0, 1, 2"',
+                challenge: '📜 Gebruik een for loop om de getallen 1 tot en met 5 te printen en het monster te verslaan!',
+                hint: '💡 Tip van Pythonicus:\n\nfor i in range(1, 6):\n    print(i)\n\n👆 range(1, 6) geeft 1,2,3,4,5',
+                check: (code) => code.includes('for') && code.includes('range') && code.includes('print'),
+                enemy: { name: 'Infinite Loop Monster ♾️', hp: 90, maxHp: 90 },
+                xp: 125,
+                skill: 'for/while loops'
+            },
+            5: {
+                title: '⚡ Les 5: Functies - Herbruikbare Spreuken',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"De machtige <strong>Recursion Dragon</strong>! Voor deze vijand heb je <strong>functies</strong> nodig.<br><br>Functies zijn herbruikbare blokken code - als spreuken die je kunt oproepen wanneer je wilt!<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>def</code> (define)<br>• Geef je functie een naam: <code>def aanval():</code><br>• Spring in en schrijf de code<br>• Roep de functie aan door de naam te typen: <code>aanval()</code><br><br>Voorbeeld:<br><code>def begroet():<br>    print("Hallo!")<br><br>begroet()</code>"',
+                challenge: '📜 Maak een functie "aanval" die "Draak verslagen!" print, en roep deze functie aan!',
+                hint: '💡 Tip van Pythonicus:\n\ndef aanval():\n    print("Draak verslagen!")\n\naanval()\n\n👆 Vergeet niet de functie aan te roepen!',
+                check: (code) => code.includes('def') && code.includes('print') && code.split('def')[1] && code.split('def')[1].includes('('),
+                enemy: { name: 'Recursion Dragon 🐉', hp: 120, maxHp: 120 },
+                xp: 150,
+                skill: 'functies'
+            },
+            6: {
+                title: '📋 Les 6: Lists - Verzamelingen',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"De laatste vijand: <strong>Index Error Beast</strong>! Versla hem met <strong>lists</strong>!<br><br>Lists zijn verzamelingen waar je meerdere waarden in kunt opslaan.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Gebruik vierkante haakjes: <code>[]</code><br>• Scheid items met komma\'s: <code>["appel", "peer", "banaan"]</code><br>• Bewaar in variabele: <code>fruit = ["appel", "peer"]</code><br>• Pak item met index (begint bij 0): <code>fruit[0]</code> geeft "appel"<br><br>Voorbeeld:<br><code>kleuren = ["rood", "blauw"]<br>print(kleuren[0])</code>"',
+                challenge: '📜 Maak een list "wapens" met 3 wapens, en print het eerste wapen om de beast te verslaan!',
+                hint: '💡 Tip van Pythonicus:\n\nwapens = ["zwaard", "boog", "staf"]\nprint(wapens[0])\n\n👆 Index 0 = eerste item!',
+                check: (code) => code.includes('[') && code.includes(']') && code.includes('print') && code.includes('[0]'),
+                enemy: { name: 'Index Error Beast 👹', hp: 150, maxHp: 150 },
+                xp: 200,
+                skill: 'lists'
+            }
+        };
+
+        const tutorialSteps = [
+            {
+                title: '🎓 Les 1: De Print Spreuk',
+                text: 'Welkom, jonge held! Ik ben Pythonicus, je mentor. De eerste spreuk die je moet leren is de <strong>print()</strong> spreuk. Hiermee kun je berichten tonen!',
+                code: 'print("Hallo Wereld!")',
+                instruction: '👆 Dit is hoe je de print spreuk gebruikt. Typ tekst tussen aanhalingstekens binnen de haakjes.'
+            },
+            {
+                title: '📝 Hoe schrijf je code?',
+                text: 'Kijk goed naar de structuur:<br><br>1️⃣ <strong>print</strong> - de naam van de spreuk<br>2️⃣ <strong>()</strong> - haakjes eromheen<br>3️⃣ <strong>"tekst"</strong> - je bericht tussen aanhalingstekens',
+                code: 'print("Dit is mijn bericht!")',
+                instruction: '💡 Je kunt ook enkele aanhalingstekens gebruiken: print(\'Hallo!\')'
+            },
+            {
+                title: '⚔️ Tijd om te vechten!',
+                text: 'Nu ga je je eerste monster verslaan! Typ de code <strong>exact</strong> zoals je het geleerd hebt in het code veld hieronder.',
+                code: 'print("Hallo Pythonia!")',
+                instruction: '🎯 Typ dit in het code veld en klik op "Voer Spreuk Uit!" om de Syntax Bug aan te vallen!'
+            }
+        ];
+
+        function startGame() {
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('tutorial-overlay').style.display = 'flex';
+        }
+
+        function nextTutorial() {
+            game.tutorialStep++;
+            if (game.tutorialStep < tutorialSteps.length) {
+                const step = tutorialSteps[game.tutorialStep];
+                document.getElementById('tutorial-title').innerHTML = step.title;
+                document.getElementById('tutorial-text').innerHTML = step.text;
+                document.getElementById('tutorial-code').textContent = step.code;
+                document.getElementById('tutorial-instruction').innerHTML = step.instruction;
+            } else {
+                document.getElementById('tutorial-overlay').style.display = 'none';
+                document.querySelector('.game-container').style.display = 'block';
+                loadLesson(1);
+            }
+        }
+
+        function loadLesson(num) {
+            const lesson = lessons[num];
+            if (!lesson) return;
+            
+            game.currentLesson = num;
+            game.enemy = { ...lesson.enemy };
+            
+            document.getElementById('story').innerHTML = lesson.story;
+            document.getElementById('challenge').innerHTML = lesson.challenge;
+            document.getElementById('enemy-name').textContent = lesson.enemy.name;
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('code-input').value = '';
+            
+            renderLessons();
+            updateUI();
+        }
+
+        function renderLessons() {
+            const lessonsDiv = document.getElementById('lessons');
+            lessonsDiv.innerHTML = '';
+            
+            Object.keys(lessons).forEach(key => {
+                const num = parseInt(key);
+                const lesson = lessons[num];
+                const div = document.createElement('div');
+                div.className = 'lesson-item';
+                
+                if (num === game.currentLesson) {
+                    div.classList.add('active');
+                } else if (num > game.currentLesson) {
+                    div.classList.add('locked');
+                }
+                
+                div.innerHTML = `<span>${num}️⃣</span><span>${lesson.title.split(':')[1] || lesson.title}</span>`;
+                
+                if (num <= game.currentLesson) {
+                    div.onclick = () => loadLesson(num);
+                }
+                
+                lessonsDiv.appendChild(div);
+            });
+        }
+
+        function runCode() {
+            const code = document.getElementById('code-input').value;
+            const lesson = lessons[game.currentLesson];
+            const output = document.getElementById('output');
+            
+            if (!code.trim()) {
+                output.innerHTML = '<span class="error">❌ Je hebt nog geen code geschreven! Typ eerst je spreuk.</span>';
+                return;
+            }
+            
+            if (lesson.check(code)) {
+                output.innerHTML = '<span class="success">✅ Spreuk succesvol uitgevoerd!</span>\n\n';
+                
+                // Try to show actual output
+                try {
+                    const prints = code.match(/print\s*\(['"](.*?)['"]\)/g);
+                    if (prints) {
+                        prints.forEach(p => {
+                            const match = p.match(/['"](.*?)['"]/);
+                            if (match) {
+                                output.innerHTML += '📤 Output: ' + match[1] + '\n';
+                            }
+                        });
+                    }
+                } catch(e) {}
+                
+                const damage = 30;
+                game.enemy.hp -= damage;
+                output.innerHTML += `\n⚔️ Je spreuk raakt! ${damage} schade aan ${game.enemy.name}!\n`;
+                
+                if (game.enemy.hp <= 0) {
+                    output.innerHTML += `\n🎉 OVERWINNING! Je hebt ${game.enemy.name} verslagen!\n`;
+                    output.innerHTML += `✨ +${lesson.xp} XP verdiend!\n`;
+                    
+                    gainXP(lesson.xp);
+                    
+                    if (!game.player.skills.includes(lesson.skill)) {
+                        game.player.skills.push(lesson.skill);
+                        output.innerHTML += `\n🎯 Nieuwe spreuk geleerd: ${lesson.skill}!\n`;
+                        updateSkills();
+                    }
+                    
+                    if (game.currentLesson < Object.keys(lessons).length) {
+                        output.innerHTML += '\n➡️ Volgende les ontgrendeld! Klik op de volgende les om door te gaan.';
+                    } else {
+                        output.innerHTML += '\n\n🏆 GEFELICITEERD! Je hebt alle lessen voltooid en bent nu een echte Code Krijger van Pythonia! 🎊';
+                    }
+                }
+            } else {
+                output.innerHTML = '<span class="error">❌ Je spreuk werkt niet goed!</span>\n\n';
+                output.innerHTML += '💭 Controleer:\n';
+                output.innerHTML += '• Heb je de juiste spreuk gebruikt?\n';
+                output.innerHTML += '• Staan de haakjes en aanhalingstekens goed?\n';
+                output.innerHTML += '• Klik op "Vraag Hulp" voor een voorbeeld!';
+            }
+            
+            updateUI();
+        }
+
+        function showHint() {
+            const lesson = lessons[game.currentLesson];
+            document.getElementById('output').innerHTML = lesson.hint;
+        }
+
+        function gainXP(xp) {
+            game.player.xp += xp;
+            
+            while (game.player.xp >= game.player.xpNext) {
+                game.player.level++;
+                game.player.xp -= game.player.xpNext;
+                game.player.xpNext = Math.floor(game.player.xpNext * 1.5);
+                game.player.maxHp += 20;
+                game.player.hp = game.player.maxHp;
+                
+                const output = document.getElementById('output');
+                output.innerHTML += `\n\n🎊 LEVEL UP! Je bent nu level ${game.player.level}!\n`;
+                output.innerHTML += `❤️ Max HP verhoogd naar ${game.player.maxHp}!\n`;
+            }
+        }
+
+        function updateSkills() {
+            const skillsDiv = document.getElementById('skills');
+            skillsDiv.innerHTML = '';
+            
+            if (game.player.skills.length === 0) {
+                skillsDiv.innerHTML = '<p style="opacity:0.6;">Nog geen spreuken geleerd...</p>';
+                return;
+            }
+            
+            game.player.skills.forEach(skill => {
+                const badge = document.createElement('span');
+                badge.className = 'skill-badge';
+                badge.textContent = skill;
+                skillsDiv.appendChild(badge);
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('level').textContent = game.player.level;
+            document.getElementById('hp').textContent = `${game.player.hp}/${game.player.maxHp}`;
+            document.getElementById('xp').textContent = `${game.player.xp}/${game.player.xpNext}`;
+            document.getElementById('xp-bar').style.width = `${(game.player.xp / game.player.xpNext) * 100}%`;
+            
+            if (game.enemy) {
+                document.getElementById('enemy-name').textContent = game.enemy.name;
+                document.getElementById('enemy-hp').textContent = `${Math.max(0, game.enemy.hp)}/${game.enemy.maxHp}`;
+            }
+        }
+
+        // Initialize
+        updateSkills();
+    </script>
+</body>
+</html>
