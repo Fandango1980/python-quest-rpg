@@ -523,14 +523,23 @@
             },
             2: {
                 title: '📦 Les 2: Variabelen - Magische Dozen',
-                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Uitstekend werk! Nu verschijnt de <strong>Memory Leak</strong>! Om deze te verslaan moet je leren over <strong>variabelen</strong>.<br><br>Variabelen zijn als magische dozen waar je informatie in kunt bewaren.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Kies een naam voor je doos: <code>naam</code><br>• Gebruik het = teken: <code>naam =</code><br>• Geef het een waarde: <code>naam = "Held"</code><br>• Print de variabele: <code>print(naam)</code><br><br>Let op: Je print nu de variabele ZONDER aanhalingstekens!"',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Uitstekend werk! Nu verschijnt de <strong>Memory Leak</strong>! Om deze te verslaan moet je leren over <strong>variabelen</strong>.<br><br>Variabelen zijn als magische dozen waar je informatie in kunt bewaren.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Kies een naam voor je doos: <code>naam</code><br>• Gebruik het = teken: <code>naam =</code><br>• Geef het een waarde: <code>naam = "Held"</code><br>• Print de variabele: <code>print(naam)</code><br><br>⚠️ <strong>Belangrijk:</strong> Je print nu de variabele ZONDER aanhalingstekens!<br>Dus: <code>print(naam)</code> en NIET <code>print("naam")</code>"',
                 challenge: '📜 Maak een variabele "naam" met jouw naam erin, en print deze om de Memory Leak te verslaan!',
-                hint: '💡 Tip van Pythonicus:\n\nnaam = "Jouw Naam"\nprint(naam)\n\n👆 Vervang "Jouw Naam" met je eigen naam!\nLet op: print(naam) ZONDER aanhalingstekens!',
+                hint: '💡 Tip van Pythonicus:\n\nnaam = "Jouw Naam"\nprint(naam)\n\n👆 Vervang "Jouw Naam" met je eigen naam!\n⚠️ Let op: print(naam) ZONDER aanhalingstekens om naam!',
                 check: (code) => {
-                    const lines = code.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
-                    const hasVariable = lines.some(l => l.includes('naam') && l.includes('=') && !l.includes('print'));
-                    const hasPrint = lines.some(l => l.includes('print') && l.includes('naam') && !l.includes('"naam"') && !l.includes("'naam'"));
-                    return hasVariable && hasPrint;
+                    // Remove comments and empty lines
+                    const cleanCode = code.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l && !l.startsWith('#'))
+                        .join('\n');
+                    
+                    // Check if there's a variable assignment with naam and =
+                    const hasVariableAssignment = /naam\s*=\s*['"]/i.test(cleanCode);
+                    
+                    // Check if there's a print statement with naam (without quotes around naam)
+                    const hasPrintVariable = /print\s*\(\s*naam\s*\)/i.test(cleanCode);
+                    
+                    return hasVariableAssignment && hasPrintVariable;
                 },
                 enemy: { name: 'Memory Leak 💾', hp: 50, maxHp: 50 },
                 xp: 75,
@@ -756,8 +765,15 @@
             } else {
                 output.innerHTML = '<span class="error">❌ Je spreuk werkt niet goed!</span>\n\n';
                 output.innerHTML += '💭 Controleer:\n';
-                output.innerHTML += '• Heb je de juiste spreuk gebruikt?\n';
-                output.innerHTML += '• Staan de haakjes en aanhalingstekens goed?\n';
+                
+                // Specific feedback for lesson 2
+                if (game.currentLesson === 2) {
+                    output.innerHTML += '• Heb je een variabele "naam" gemaakt met =?\n';
+                    output.innerHTML += '• Print je de variabele zonder aanhalingstekens? (print(naam) niet print("naam"))\n';
+                } else {
+                    output.innerHTML += '• Heb je de juiste spreuk gebruikt?\n';
+                    output.innerHTML += '• Staan de haakjes en aanhalingstekens goed?\n';
+                }
                 output.innerHTML += '• Klik op "Vraag Hulp" voor een voorbeeld!';
             }
             
