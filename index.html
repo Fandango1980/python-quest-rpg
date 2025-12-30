@@ -303,6 +303,26 @@
         .btn-secondary:hover {
             background: rgba(255,255,255,0.3);
         }
+
+        .btn-next-lesson {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(58,123,213,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-next-lesson:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(58,123,213,0.5);
+        }
         
         #output {
             background: rgba(0,0,0,0.7);
@@ -351,6 +371,15 @@
         .lesson-item.completed {
             background: rgba(0,255,0,0.2);
             border-color: rgba(0,255,0,0.3);
+        }
+
+        .lesson-item.unlocked {
+            animation: pulse 1s ease-in-out 3;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,215,0,0.6); }
         }
         
         .success { color: #00ff00; font-weight: bold; text-shadow: 0 0 10px #00ff00; }
@@ -453,6 +482,7 @@
                         <button class="btn btn-secondary" onclick="showHint()">💡 Vraag Hulp</button>
                     </div>
                     <div id="output"></div>
+                    <div id="next-lesson-container"></div>
                 </div>
             </div>
 
@@ -472,7 +502,8 @@
             currentLesson: 1,
             enemy: null,
             tutorialStep: 0,
-            completedLessons: []
+            completedLessons: [],
+            maxUnlockedLesson: 1
         };
 
         const lessons = {
@@ -613,6 +644,7 @@
             document.getElementById('enemy-name').textContent = lesson.enemy.name;
             document.getElementById('output').innerHTML = '';
             document.getElementById('code-input').value = '';
+            document.getElementById('next-lesson-container').innerHTML = '';
             
             renderLessons();
             updateUI();
@@ -632,14 +664,14 @@
                     div.classList.add('active');
                 } else if (game.completedLessons.includes(num)) {
                     div.classList.add('completed');
-                } else if (num > Math.max(game.currentLesson, ...game.completedLessons, 0)) {
+                } else if (num > game.maxUnlockedLesson) {
                     div.classList.add('locked');
                 }
                 
                 const icon = game.completedLessons.includes(num) ? '✅' : `${num}️⃣`;
                 div.innerHTML = `<span>${icon}</span><span>${lesson.title.split(':')[1] || lesson.title}</span>`;
                 
-                if (num <= Math.max(game.currentLesson, ...game.completedLessons, 1)) {
+                if (num <= game.maxUnlockedLesson) {
                     div.onclick = () => loadLesson(num);
                 }
                 
@@ -694,9 +726,29 @@
                         game.completedLessons.push(game.currentLesson);
                     }
                     
-                    if (game.currentLesson < Object.keys(lessons).length) {
-                        output.innerHTML += '\n➡️ Volgende les ontgrendeld! Klik op de volgende les om door te gaan.';
+                    // Unlock next lesson
+                    const nextLessonNum = game.currentLesson + 1;
+                    if (lessons[nextLessonNum]) {
+                        game.maxUnlockedLesson = Math.max(game.maxUnlockedLesson, nextLessonNum);
+                        output.innerHTML += `\n🔓 Les ${nextLessonNum} ontgrendeld!\n`;
+                        
+                        // Add button to go to next lesson
+                        const nextBtn = document.createElement('button');
+                        nextBtn.className = 'btn-next-lesson';
+                        nextBtn.textContent = `➡️ Ga naar Les ${nextLessonNum}: ${lessons[nextLessonNum].title.split(':')[1]}`;
+                        nextBtn.onclick = () => loadLesson(nextLessonNum);
+                        document.getElementById('next-lesson-container').innerHTML = '';
+                        document.getElementById('next-lesson-container').appendChild(nextBtn);
+                        
                         renderLessons();
+                        
+                        // Highlight the newly unlocked lesson
+                        setTimeout(() => {
+                            const lessonItems = document.querySelectorAll('.lesson-item');
+                            if (lessonItems[nextLessonNum - 1]) {
+                                lessonItems[nextLessonNum - 1].classList.add('unlocked');
+                            }
+                        }, 100);
                     } else {
                         output.innerHTML += '\n\n🏆 GEFELICITEERD! Je hebt alle lessen voltooid en bent nu een echte Code Krijger van Pythonia! 🎊';
                     }
