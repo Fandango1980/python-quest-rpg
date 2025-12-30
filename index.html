@@ -348,6 +348,11 @@
             cursor: not-allowed;
         }
         
+        .lesson-item.completed {
+            background: rgba(0,255,0,0.2);
+            border-color: rgba(0,255,0,0.3);
+        }
+        
         .success { color: #00ff00; font-weight: bold; text-shadow: 0 0 10px #00ff00; }
         .error { color: #ff4444; font-weight: bold; text-shadow: 0 0 10px #ff4444; }
         
@@ -466,7 +471,8 @@
             player: { level: 1, hp: 100, maxHp: 100, xp: 0, xpNext: 100, skills: [] },
             currentLesson: 1,
             enemy: null,
-            tutorialStep: 0
+            tutorialStep: 0,
+            completedLessons: []
         };
 
         const lessons = {
@@ -475,47 +481,65 @@
                 story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Welkom, jonge held! Voor je staat de <strong>Syntax Bug</strong>, een van de zwakste monsters. Perfect om mee te oefenen!<br><br>De <strong>print()</strong> spreuk is de basis van alle code magie. Hiermee kun je berichten tonen en monsters aanvallen!<br><br>📝 <strong>Hoe werkt het?</strong><br>• Typ: <code>print()</code><br>• Zet je bericht tussen aanhalingstekens: <code>"je tekst"</code><br>• Plaats het tussen de haakjes: <code>print("je tekst")</code><br><br>Probeer het nu!"',
                 challenge: '📜 Gebruik de print() spreuk om "Hallo Pythonia!" te roepen en de Syntax Bug aan te vallen!',
                 hint: '💡 Tip van Pythonicus:\n\nprint("Hallo Pythonia!")\n\n👆 Kopieer dit exact en voer het uit!',
-                check: (code) => code.includes('print') && (code.includes('"Hallo Pythonia!"') || code.includes("'Hallo Pythonia!'")),
+                check: (code) => {
+                    const normalized = code.toLowerCase().replace(/\s+/g, '');
+                    return normalized.includes('print') && 
+                           (normalized.includes('"hallopythonia!"') || normalized.includes("'hallopythonia!'"));
+                },
                 enemy: { name: 'Syntax Bug 🐛', hp: 30, maxHp: 30 },
                 xp: 50,
                 skill: 'print()'
             },
             2: {
                 title: '📦 Les 2: Variabelen - Magische Dozen',
-                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Uitstekend werk! Nu verschijnt de <strong>Memory Leak</strong>! Om deze te verslaan moet je leren over <strong>variabelen</strong>.<br><br>Variabelen zijn als magische dozen waar je informatie in kunt bewaren.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Kies een naam voor je doos: <code>naam</code><br>• Gebruik het = teken: <code>naam =</code><br>• Geef het een waarde: <code>naam = "Held"</code><br>• Print de variabele: <code>print(naam)</code><br><br>Probeer het!"',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Uitstekend werk! Nu verschijnt de <strong>Memory Leak</strong>! Om deze te verslaan moet je leren over <strong>variabelen</strong>.<br><br>Variabelen zijn als magische dozen waar je informatie in kunt bewaren.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Kies een naam voor je doos: <code>naam</code><br>• Gebruik het = teken: <code>naam =</code><br>• Geef het een waarde: <code>naam = "Held"</code><br>• Print de variabele: <code>print(naam)</code><br><br>Let op: Je print nu de variabele ZONDER aanhalingstekens!"',
                 challenge: '📜 Maak een variabele "naam" met jouw naam erin, en print deze om de Memory Leak te verslaan!',
-                hint: '💡 Tip van Pythonicus:\n\nnaam = "Jouw Naam"\nprint(naam)\n\n👆 Vervang "Jouw Naam" met je eigen naam!',
-                check: (code) => code.includes('naam') && code.includes('=') && code.includes('print'),
+                hint: '💡 Tip van Pythonicus:\n\nnaam = "Jouw Naam"\nprint(naam)\n\n👆 Vervang "Jouw Naam" met je eigen naam!\nLet op: print(naam) ZONDER aanhalingstekens!',
+                check: (code) => {
+                    const lines = code.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+                    const hasVariable = lines.some(l => l.includes('naam') && l.includes('=') && !l.includes('print'));
+                    const hasPrint = lines.some(l => l.includes('print') && l.includes('naam') && !l.includes('"naam"') && !l.includes("'naam'"));
+                    return hasVariable && hasPrint;
+                },
                 enemy: { name: 'Memory Leak 💾', hp: 50, maxHp: 50 },
                 xp: 75,
                 skill: 'variabelen'
             },
             3: {
                 title: '🔀 Les 3: If Statements - Beslissingen',
-                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"De <strong>Logic Error</strong> daagt je uit! Deze vijand kan alleen verslagen worden met slimme beslissingen.<br><br>Met <strong>if statements</strong> kan je code verschillende dingen doen op basis van voorwaarden.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>if</code><br>• Schrijf een voorwaarde: <code>if 10 > 5:</code><br>• Let op de dubbele punt!<br>• Spring in (4 spaties) en schrijf wat er moet gebeuren<br><br>Voorbeeld:<br><code>if 10 > 5:<br>    print("Waar!")</code>"',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"De <strong>Logic Error</strong> daagt je uit! Deze vijand kan alleen verslagen worden met slimme beslissingen.<br><br>Met <strong>if statements</strong> kan je code verschillende dingen doen op basis van voorwaarden.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>if</code><br>• Schrijf een voorwaarde: <code>if 10 > 5:</code><br>• Let op de dubbele punt!<br>• Spring in (4 spaties) en schrijf wat er moet gebeuren<br><br>Voorbeeld:<br><code>if 10 > 5:<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Waar!")</code>"',
                 challenge: '📜 Schrijf een if statement die checkt of 15 groter is dan 10, en print "Aanval!" als dat waar is!',
                 hint: '💡 Tip van Pythonicus:\n\nif 15 > 10:\n    print("Aanval!")\n\n👆 Let op de 4 spaties voor print!',
-                check: (code) => code.includes('if') && code.includes('>') && code.includes('print'),
+                check: (code) => {
+                    return code.includes('if') && code.includes('15') && code.includes('10') && 
+                           code.includes('>') && code.includes('print');
+                },
                 enemy: { name: 'Logic Error ⚠️', hp: 70, maxHp: 70 },
                 xp: 100,
                 skill: 'if/else'
             },
             4: {
                 title: '🔁 Les 4: Loops - Herhaling is Kracht',
-                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Het <strong>Infinite Loop Monster</strong> is verschenen! Ironisch genoeg versla je hem met... loops!<br><br><strong>For loops</strong> laten je code meerdere keren herhalen zonder alles opnieuw te typen.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>for</code><br>• Kies een variabele naam: <code>for i</code><br>• Gebruik <code>in range()</code>: <code>for i in range(5):</code><br>• Spring in en schrijf wat herhaald moet worden<br><br>Voorbeeld:<br><code>for i in range(3):<br>    print(i)</code><br>Dit print: 0, 1, 2"',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"Het <strong>Infinite Loop Monster</strong> is verschenen! Ironisch genoeg versla je hem met... loops!<br><br><strong>For loops</strong> laten je code meerdere keren herhalen zonder alles opnieuw te typen.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>for</code><br>• Kies een variabele naam: <code>for i</code><br>• Gebruik <code>in range()</code>: <code>for i in range(5):</code><br>• Spring in en schrijf wat herhaald moet worden<br><br>Voorbeeld:<br><code>for i in range(3):<br>&nbsp;&nbsp;&nbsp;&nbsp;print(i)</code><br>Dit print: 0, 1, 2"',
                 challenge: '📜 Gebruik een for loop om de getallen 1 tot en met 5 te printen en het monster te verslaan!',
                 hint: '💡 Tip van Pythonicus:\n\nfor i in range(1, 6):\n    print(i)\n\n👆 range(1, 6) geeft 1,2,3,4,5',
-                check: (code) => code.includes('for') && code.includes('range') && code.includes('print'),
+                check: (code) => {
+                    return code.includes('for') && code.includes('range') && code.includes('print');
+                },
                 enemy: { name: 'Infinite Loop Monster ♾️', hp: 90, maxHp: 90 },
                 xp: 125,
                 skill: 'for/while loops'
             },
             5: {
                 title: '⚡ Les 5: Functies - Herbruikbare Spreuken',
-                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"De machtige <strong>Recursion Dragon</strong>! Voor deze vijand heb je <strong>functies</strong> nodig.<br><br>Functies zijn herbruikbare blokken code - als spreuken die je kunt oproepen wanneer je wilt!<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>def</code> (define)<br>• Geef je functie een naam: <code>def aanval():</code><br>• Spring in en schrijf de code<br>• Roep de functie aan door de naam te typen: <code>aanval()</code><br><br>Voorbeeld:<br><code>def begroet():<br>    print("Hallo!")<br><br>begroet()</code>"',
+                story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"De machtige <strong>Recursion Dragon</strong>! Voor deze vijand heb je <strong>functies</strong> nodig.<br><br>Functies zijn herbruikbare blokken code - als spreuken die je kunt oproepen wanneer je wilt!<br><br>📝 <strong>Hoe werkt het?</strong><br>• Begin met <code>def</code> (define)<br>• Geef je functie een naam: <code>def aanval():</code><br>• Spring in en schrijf de code<br>• Roep de functie aan door de naam te typen: <code>aanval()</code><br><br>Voorbeeld:<br><code>def begroet():<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Hallo!")<br><br>begroet()</code>"',
                 challenge: '📜 Maak een functie "aanval" die "Draak verslagen!" print, en roep deze functie aan!',
                 hint: '💡 Tip van Pythonicus:\n\ndef aanval():\n    print("Draak verslagen!")\n\naanval()\n\n👆 Vergeet niet de functie aan te roepen!',
-                check: (code) => code.includes('def') && code.includes('print') && code.split('def')[1] && code.split('def')[1].includes('('),
+                check: (code) => {
+                    const hasDefine = code.includes('def') && code.includes('aanval');
+                    const hasCall = code.split('def')[1] && code.includes('aanval()');
+                    return hasDefine && hasCall && code.includes('print');
+                },
                 enemy: { name: 'Recursion Dragon 🐉', hp: 120, maxHp: 120 },
                 xp: 150,
                 skill: 'functies'
@@ -525,7 +549,11 @@
                 story: '🧙‍♂️ <strong>Pythonicus spreekt:</strong><br><br>"De laatste vijand: <strong>Index Error Beast</strong>! Versla hem met <strong>lists</strong>!<br><br>Lists zijn verzamelingen waar je meerdere waarden in kunt opslaan.<br><br>📝 <strong>Hoe werkt het?</strong><br>• Gebruik vierkante haakjes: <code>[]</code><br>• Scheid items met komma\'s: <code>["appel", "peer", "banaan"]</code><br>• Bewaar in variabele: <code>fruit = ["appel", "peer"]</code><br>• Pak item met index (begint bij 0): <code>fruit[0]</code> geeft "appel"<br><br>Voorbeeld:<br><code>kleuren = ["rood", "blauw"]<br>print(kleuren[0])</code>"',
                 challenge: '📜 Maak een list "wapens" met 3 wapens, en print het eerste wapen om de beast te verslaan!',
                 hint: '💡 Tip van Pythonicus:\n\nwapens = ["zwaard", "boog", "staf"]\nprint(wapens[0])\n\n👆 Index 0 = eerste item!',
-                check: (code) => code.includes('[') && code.includes(']') && code.includes('print') && code.includes('[0]'),
+                check: (code) => {
+                    const hasWapens = code.includes('wapens') && code.includes('[') && code.includes(']');
+                    const hasPrint = code.includes('print') && code.includes('wapens[0]');
+                    return hasWapens && hasPrint;
+                },
                 enemy: { name: 'Index Error Beast 👹', hp: 150, maxHp: 150 },
                 xp: 200,
                 skill: 'lists'
@@ -602,13 +630,16 @@
                 
                 if (num === game.currentLesson) {
                     div.classList.add('active');
-                } else if (num > game.currentLesson) {
+                } else if (game.completedLessons.includes(num)) {
+                    div.classList.add('completed');
+                } else if (num > Math.max(game.currentLesson, ...game.completedLessons, 0)) {
                     div.classList.add('locked');
                 }
                 
-                div.innerHTML = `<span>${num}️⃣</span><span>${lesson.title.split(':')[1] || lesson.title}</span>`;
+                const icon = game.completedLessons.includes(num) ? '✅' : `${num}️⃣`;
+                div.innerHTML = `<span>${icon}</span><span>${lesson.title.split(':')[1] || lesson.title}</span>`;
                 
-                if (num <= game.currentLesson) {
+                if (num <= Math.max(game.currentLesson, ...game.completedLessons, 1)) {
                     div.onclick = () => loadLesson(num);
                 }
                 
@@ -658,8 +689,14 @@
                         updateSkills();
                     }
                     
+                    // Mark lesson as completed
+                    if (!game.completedLessons.includes(game.currentLesson)) {
+                        game.completedLessons.push(game.currentLesson);
+                    }
+                    
                     if (game.currentLesson < Object.keys(lessons).length) {
                         output.innerHTML += '\n➡️ Volgende les ontgrendeld! Klik op de volgende les om door te gaan.';
+                        renderLessons();
                     } else {
                         output.innerHTML += '\n\n🏆 GEFELICITEERD! Je hebt alle lessen voltooid en bent nu een echte Code Krijger van Pythonia! 🎊';
                     }
